@@ -51,26 +51,16 @@ open index.html
 
 Fonts come from Google Fonts; everything else is inline.
 
-## Real lead capture
+## Lead capture
 
-Scoring runs entirely in the browser — no analytics, no cookies, no network calls. The only thing that reaches me is what a visitor chooses to send via the mail handoff.
+Scoring runs entirely in the browser — no analytics, no cookies, no tracking. Nothing is sent anywhere unless the visitor presses a button that says it will be.
 
-To capture leads properly when self-hosting, post the record to an n8n webhook inside the `handoff` click handler in `index.html`:
+There are two send paths:
 
-```js
-fetch("https://<your-n8n-host>/webhook/lead", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({
-    name: state.name, company: state.company,
-    seniority: state.seniority, size: state.size,
-    intent: state.intent, track: state.track,
-    score: score, lead_id: leadId
-  })
-});
-```
+- **Mail handoff** — always on. Opens the visitor's own mail client with the scored record written into the draft.
+- **Leave this record** — appears only once `CAPTURE_ENDPOINT` is set in `index.html`. Posts the record to a Google Sheet. See [`capture/README.md`](capture/README.md) for the five-minute setup; the Apps Script is in [`capture/Code.gs`](capture/Code.gs).
 
-n8n then posts it to Slack, which closes the loop and makes this the same pipeline as the repo it's imitating.
+To route to Slack instead, point `CAPTURE_ENDPOINT` at an n8n webhook rather than the Apps Script URL — same payload, no code change — which closes the loop and makes this a live instance of the pipeline it's imitating.
 
 ## Stack
 

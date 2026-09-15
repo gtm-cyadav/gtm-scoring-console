@@ -175,7 +175,7 @@
   .f-row.wide{ grid-column:1/-1; }
   label{ font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:.11em; text-transform:uppercase; color:var(--ink-3); font-weight:500; }
   label .w{ color:var(--accent); letter-spacing:.04em; text-transform:none; }
-  input, select{
+  input, select, textarea{
     font-family:'Archivo',sans-serif; font-size:14.5px; color:var(--ink);
     background:transparent; border:none; border-bottom:1px solid var(--line-2); border-radius:0;
     padding:7px 2px; width:100%; appearance:none;
@@ -187,7 +187,9 @@
     background-repeat:no-repeat; padding-right:22px;
   }
   select option{ background:var(--panel); color:var(--ink); }
-  input:focus, select:focus{ outline:none; border-bottom-color:var(--accent); }
+  textarea{ border:1px solid var(--line-2); border-radius:7px; padding:9px 11px; resize:vertical; line-height:1.5; }
+  input:focus, select:focus, textarea:focus{ outline:none; border-bottom-color:var(--accent); }
+  textarea:focus{ border-color:var(--accent); }
   input:focus-visible, select:focus-visible, button:focus-visible, a:focus-visible{ outline:1.5px solid var(--accent); outline-offset:3px; }
 
   /* track selector */
@@ -487,11 +489,22 @@
             <a class="btn ghost" href="https://github.com/gtm-cyadav" target="_blank" rel="noopener" data-sig="link">Open the repositories</a>
           </div>
           <p style="font-size:12.5px; color:var(--ink-3); margin:14px 0 0;">The handoff opens your own mail client with this record already written into the draft. Nothing sends without you.</p>
+
+          <div id="capture-block" hidden style="margin-top:20px; padding-top:18px; border-top:1px solid var(--line);">
+            <div class="f-row">
+              <label for="f-note">Anything you want to add <span class="w">optional</span></label>
+              <textarea id="f-note" rows="2" placeholder="The role, your timeline, or what caught your eye"></textarea>
+            </div>
+            <div class="cta-row">
+              <button type="button" class="btn ghost" id="leave-record">Leave this record instead</button>
+            </div>
+            <p id="capture-note" style="font-size:12.5px; color:var(--ink-3); margin:12px 0 0;">Sends only what's in the record above — name, company, seniority, size, intent, role track and score — straight to Chetan. No mail client, no follow-up sequence.</p>
+          </div>
         </div>
       </section>
 
       <footer>
-        Everything here runs in your browser — no analytics, no cookies, no network calls. The scoring is real logistic regression with the coefficients printed above, and the fields it uses are the same three the production model uses: seniority, company size, recency of engagement. That version, the one scoring actual inbound leads and posting to Slack, lives at <a href="https://github.com/gtm-cyadav/gtm-lead-scoring" target="_blank" rel="noopener">github.com/gtm-cyadav/gtm-lead-scoring</a>.
+        Everything here runs in your browser — no analytics, no cookies, no tracking pixels. Nothing you type is sent anywhere unless you press a button that says it will be, and then only the fields listed in the record above. The scoring is real logistic regression with the coefficients printed above, and the signals it uses are the same ones the production model uses: seniority, company size, recency of engagement. That version, the one scoring actual inbound leads and posting to Slack, lives at <a href="https://github.com/gtm-cyadav/gtm-lead-scoring" target="_blank" rel="noopener">github.com/gtm-cyadav/gtm-lead-scoring</a>.
       </footer>
     </main>
 
@@ -560,6 +573,10 @@
     size:{none:"not provided",big:"200+",mid:"51-200",small:"11-50",tiny:"1-10",solo:"1"},
     intent:{none:"not provided",now:"hiring_now",soon:"hiring_this_quarter",later:"eventually",browsing:"browsing"}
   };
+
+  /* Paste the Apps Script web app URL here to turn on lead capture.
+     Left empty, the page sends nothing and hides the capture control. */
+  var CAPTURE_ENDPOINT = "";
 
   var state = { name:"", company:"", seniority:"none", size:"none", intent:"none",
                 track:"growth", sections:0, links:0, dwell:0, depth:0, alerted:false, converted:false };
@@ -946,6 +963,34 @@
     var a=e.target.closest ? e.target.closest("[data-sig='link']") : null;
     if(a){ state.links+=1; log("link.click", a.getAttribute("href")); recompute(); }
   });
+  if (CAPTURE_ENDPOINT){
+    $("capture-block").hidden = false;
+    $("leave-record").addEventListener("click", function(){
+      var btn=this, p=sig(zOf()), score=Math.round(p*100);
+      btn.disabled=true; btn.textContent="Sending…";
+      fetch(CAPTURE_ENDPOINT, {
+        method:"POST",
+        body: JSON.stringify({
+          lead_id:leadId, name:state.name, company:state.company,
+          seniority:LABEL.seniority[state.seniority], size:LABEL.size[state.size],
+          intent:LABEL.intent[state.intent], track:TRACK_NAME[state.track],
+          score:score, probability:p.toFixed(3), engagement:engagement().toFixed(2),
+          source:ref||"direct", device:(window.innerWidth<760?"mobile":"desktop"),
+          note:($("f-note").value||"").slice(0,800)
+        })
+      }).then(function(res){
+        if (!res.ok) throw new Error(res.status);
+        btn.textContent="Record left with Chetan";
+        $("capture-note").textContent="Received — he'll see it with your score attached.";
+        state.converted=true; log("lead.capture","posted "+score); recompute();
+      }).catch(function(){
+        btn.disabled=false; btn.textContent="Leave this record instead";
+        $("capture-note").textContent="That didn't go through. Use the mail handoff above instead.";
+        log("lead.capture","failed");
+      });
+    });
+  }
+
   $("handoff").addEventListener("click", function(){
     state.converted=true; log("lead.convert","status=converted");
     $("route-sub").textContent="Record handed off. In the production pipeline this is where the row flips to converted and the model gets one more example to learn from.";
