@@ -491,6 +491,10 @@
           <p style="font-size:12.5px; color:var(--ink-3); margin:14px 0 0;">The handoff opens your own mail client with this record already written into the draft. Nothing sends without you.</p>
 
           <div id="capture-block" hidden style="margin-top:20px; padding-top:18px; border-top:1px solid var(--line);">
+            <div class="f-row" style="margin-bottom:14px;">
+              <label for="f-email">Your email <span class="w">optional — so he can reply</span></label>
+              <input id="f-email" type="email" placeholder="you@company.com" autocomplete="email">
+            </div>
             <div class="f-row">
               <label for="f-note">Anything you want to add <span class="w">optional</span></label>
               <textarea id="f-note" rows="2" placeholder="The role, your timeline, or what caught your eye"></textarea>
@@ -498,7 +502,7 @@
             <div class="cta-row">
               <button type="button" class="btn ghost" id="leave-record">Leave this record instead</button>
             </div>
-            <p id="capture-note" style="font-size:12.5px; color:var(--ink-3); margin:12px 0 0;">Sends only what's in the record above — name, company, seniority, size, intent, role track and score — straight to Chetan. No mail client, no follow-up sequence.</p>
+            <p id="capture-note" style="font-size:12.5px; color:var(--ink-3); margin:12px 0 0;">Sends this record — name, company, seniority, size, intent, role track, score, and whatever you write above — straight to Chetan. No mail client, no follow-up sequence.</p>
           </div>
         </div>
       </section>
@@ -972,6 +976,7 @@
         method:"POST",
         body: JSON.stringify({
           lead_id:leadId, name:state.name, company:state.company,
+          email:($("f-email").value||"").slice(0,120),
           seniority:LABEL.seniority[state.seniority], size:LABEL.size[state.size],
           intent:LABEL.intent[state.intent], track:TRACK_NAME[state.track],
           score:score, probability:p.toFixed(3), engagement:engagement().toFixed(2),

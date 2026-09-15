@@ -46,20 +46,26 @@ Opening the web app URL directly in a browser returns `{"ok":true,...}` — a qu
 
 ## What gets stored
 
-One row per submission: timestamp, lead_id, name, company, seniority, company size, intent, role track, score, probability, engagement depth, source, device, and the optional note.
+One row per submission: timestamp, lead_id, name, email, company, seniority, company size, intent, role track, score, probability, engagement depth, source, device, and the optional note.
 
 Nothing is sent unless the visitor presses the button, and the page says so in its footer. Keep it that way — silently logging what people type would contradict a promise the page makes to its readers.
 
-## Getting notified
+## Email notifications
 
-Apps Script can email you on each new lead. Add this to `Code.gs` inside `doPost`, just before `return json_({ ok: true })`:
+`Code.gs` emails `NOTIFY_EMAIL` on every new lead, subject line `Lead 84/100 — Priya Raman @ Northwind Labs`. When the visitor left an email address it's set as the **reply-to**, so replying in Gmail goes straight to them.
 
-```js
-MailApp.sendEmail(
-  'chetan00yadav@gmail.com',
-  'New lead: ' + str_(data.name) + ' (' + data.score + '/100)',
-  JSON.stringify(data, null, 2)
-);
-```
+Set `NOTIFY = false` at the top of the script to turn this off and keep sheet rows only.
 
-Re-deploy afterwards (**Deploy → Manage deployments → edit → New version**), or the change won't go live.
+The row is written before the email is attempted, and a mail failure is caught and logged rather than failing the request — a bounced notification never costs you the lead.
+
+Consumer Gmail accounts can send 100 script emails a day, which is far more than this page will ever generate.
+
+## Updating the script later
+
+Editing `Code.gs` is not enough — Apps Script serves the last *deployed* version. After any change:
+
+**Deploy → Manage deployments → pencil icon → Version: New version → Deploy**
+
+Keep the same deployment so the `/exec` URL never changes. Creating a *new deployment* instead issues a new URL and the site would keep posting to the old one.
+
+Adding email notifications introduces a new permission (sending mail as you), so Google will ask you to authorise the script once more on the next deploy.
