@@ -1,0 +1,926 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GTM Scoring Console — Chetan Yadav</title>
+<meta name="description" content="An interactive CV that scores the person reading it. Chetan Yadav's lead-scoring pipeline, pointed at the visitor, with the evidence re-ranked for the role you're hiring for.">
+<meta name="author" content="Chetan Yadav">
+<meta property="og:title" content="GTM Scoring Console — Chetan Yadav">
+<meta property="og:description" content="You are the lead. This is the pipeline scoring you.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>%F0%9F%8E%AF</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spectral:wght@400;500;600&family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  img{max-width:100%;}
+  [hidden]{display:none!important;}
+  :root{
+    --ground:#F0F1EE;
+    --panel:#FBFBF9;
+    --panel-2:#E9EBE6;
+    --line:rgba(16,22,20,.12);
+    --line-2:rgba(16,22,20,.22);
+    --ink:#0E1413;
+    --ink-2:#556059;
+    --ink-3:#8A938C;
+    --accent:#8A6A1F;
+    --accent-ink:#FBFBF9;
+    --accent-soft:rgba(138,106,31,.11);
+    --cold:#6B7A86;
+    --warm:#A07B2A;
+    --hot:#BE4F2D;
+    --good:#2C7A54;
+    --code-bg:#0E1413;
+    --code-ink:#D6DAD2;
+    --code-key:#C9A96A;
+    --code-str:#94B4A4;
+    --code-dim:#6A746D;
+    --sheen:inset 0 1px 0 rgba(255,255,255,.7);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --ground:#090C0B;
+      --panel:#0F1413;
+      --panel-2:#161C1A;
+      --line:rgba(236,239,236,.10);
+      --line-2:rgba(236,239,236,.20);
+      --ink:#ECEFEC;
+      --ink-2:#9BA59E;
+      --ink-3:#6B756F;
+      --accent:#C9A96A;
+      --accent-ink:#0B0F0E;
+      --accent-soft:rgba(201,169,106,.13);
+      --cold:#71818D;
+      --warm:#C9A96A;
+      --hot:#DD6E4A;
+      --good:#4FA97C;
+      --code-bg:#070A09;
+      --code-ink:#D6DAD2;
+      --code-key:#C9A96A;
+      --code-str:#94B4A4;
+      --code-dim:#5E6862;
+      --sheen:inset 0 1px 0 rgba(255,255,255,.035);
+    }
+  }
+  :root[data-theme="dark"]{
+    --ground:#090C0B; --panel:#0F1413; --panel-2:#161C1A;
+    --line:rgba(236,239,236,.10); --line-2:rgba(236,239,236,.20);
+    --ink:#ECEFEC; --ink-2:#9BA59E; --ink-3:#6B756F;
+    --accent:#C9A96A; --accent-ink:#0B0F0E; --accent-soft:rgba(201,169,106,.13);
+    --cold:#71818D; --warm:#C9A96A; --hot:#DD6E4A; --good:#4FA97C;
+    --code-bg:#070A09; --code-ink:#D6DAD2; --code-key:#C9A96A; --code-str:#94B4A4; --code-dim:#5E6862;
+    --sheen:inset 0 1px 0 rgba(255,255,255,.035);
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  @media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto;} *{animation:none!important; transition:none!important;} }
+  body{
+    margin:0; background:var(--ground); color:var(--ink);
+    font-family:'Archivo',system-ui,-apple-system,sans-serif;
+    font-size:15px; line-height:1.6; -webkit-font-smoothing:antialiased;
+  }
+  .m{font-family:'IBM Plex Mono',ui-monospace,Consolas,monospace; font-variant-numeric:tabular-nums;}
+  .micro{
+    font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:.11em;
+    text-transform:uppercase; color:var(--ink-3); font-weight:500;
+  }
+
+  /* ---------- app bar ---------- */
+  header{
+    position:sticky; top:0; z-index:40;
+    background:color-mix(in srgb, var(--ground) 88%, transparent);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+    display:flex; align-items:center; gap:13px; padding:11px 22px;
+  }
+  .appname{font-family:'IBM Plex Mono',monospace; font-weight:500; font-size:12.5px; letter-spacing:.02em;}
+  .ver{font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--ink-3); letter-spacing:.06em;}
+  .conn{display:flex; align-items:center; gap:6px;}
+  .conn .led{width:5px; height:5px; border-radius:50%; background:var(--good);}
+  .spacer{flex:1;}
+  .hdr-score{
+    display:flex; align-items:center; gap:10px;
+    font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:.08em; text-transform:uppercase;
+    color:var(--ink-3); border-left:1px solid var(--line); padding-left:14px;
+  }
+  .hdr-score b{font-size:16px; letter-spacing:-.01em; color:var(--ink); font-weight:600;}
+  .status-dot{width:6px; height:6px; border-radius:50%; background:var(--cold);}
+
+  /* ---------- layout ---------- */
+  .wrap{ max-width:1240px; margin:0 auto; padding:38px 22px 90px; }
+  .cols{ display:grid; grid-template-columns:minmax(0,1fr) 316px; gap:44px; align-items:start; }
+  @media (max-width:1000px){ .cols{grid-template-columns:minmax(0,1fr); gap:30px;} }
+
+  /* ---------- masthead ---------- */
+  .masthead{ margin-bottom:48px; max-width:74ch; }
+  .rule{ height:1px; background:linear-gradient(90deg, var(--accent), transparent 72%); margin:16px 0 18px; }
+  h1{
+    font-family:'Spectral',Georgia,serif; font-weight:500;
+    font-size:clamp(30px,4.6vw,46px); line-height:1.12; letter-spacing:-.018em;
+    margin:0; text-wrap:balance; max-width:19ch;
+  }
+  h1 em{ font-style:italic; color:var(--accent); }
+  .dek{ font-size:15.5px; color:var(--ink-2); max-width:64ch; margin:0; }
+  .dek b{color:var(--ink); font-weight:600;}
+
+  /* ---------- stages ---------- */
+  .stage{ position:relative; padding-left:52px; padding-bottom:40px; }
+  .stage:not(:last-child)::before{
+    content:""; position:absolute; left:14px; top:34px; bottom:2px; width:1px; background:var(--line);
+  }
+  .stage-num{
+    position:absolute; left:0; top:0; width:29px; height:29px; border-radius:50%;
+    background:var(--panel); border:1px solid var(--line-2);
+    display:flex; align-items:center; justify-content:center;
+    font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:var(--ink-3); letter-spacing:.02em;
+  }
+  .stage[data-done="1"] .stage-num{ border-color:var(--accent); color:var(--accent); }
+  .stage-h{ display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; margin-bottom:5px; padding-top:1px; }
+  .stage-h h2{ font-family:'Spectral',Georgia,serif; font-size:21px; margin:0; font-weight:500; letter-spacing:-.01em; }
+  .stage-sub{ color:var(--ink-2); font-size:14px; margin:0 0 18px; max-width:62ch; }
+
+  .panel{ background:var(--panel); border:1px solid var(--line); border-radius:11px; box-shadow:var(--sheen); }
+  .panel-pad{ padding:18px 20px; }
+
+  /* record table */
+  table.rec{ width:100%; border-collapse:collapse; font-family:'IBM Plex Mono',monospace; font-size:12.2px; }
+  table.rec td{ padding:8px 10px; border-bottom:1px solid var(--line); vertical-align:top; }
+  table.rec tr:last-child td{ border-bottom:none; }
+  table.rec td:first-child{ color:var(--ink-3); width:150px; white-space:nowrap; letter-spacing:.02em; }
+
+  /* form */
+  .form-grid{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  @media (max-width:560px){ .form-grid{grid-template-columns:1fr;} }
+  .f-row{ display:flex; flex-direction:column; gap:6px; }
+  .f-row.wide{ grid-column:1/-1; }
+  label{ font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:.11em; text-transform:uppercase; color:var(--ink-3); font-weight:500; }
+  label .w{ color:var(--accent); letter-spacing:.04em; text-transform:none; }
+  input, select{
+    font-family:'Archivo',sans-serif; font-size:14.5px; color:var(--ink);
+    background:transparent; border:none; border-bottom:1px solid var(--line-2); border-radius:0;
+    padding:7px 2px; width:100%; appearance:none;
+  }
+  input::placeholder{ color:var(--ink-3); }
+  select{
+    background-image:linear-gradient(45deg,transparent 50%,var(--ink-3) 50%),linear-gradient(135deg,var(--ink-3) 50%,transparent 50%);
+    background-position:calc(100% - 9px) 55%, calc(100% - 5px) 55%; background-size:4px 4px,4px 4px;
+    background-repeat:no-repeat; padding-right:22px;
+  }
+  select option{ background:var(--panel); color:var(--ink); }
+  input:focus, select:focus{ outline:none; border-bottom-color:var(--accent); }
+  input:focus-visible, select:focus-visible, button:focus-visible, a:focus-visible{ outline:1.5px solid var(--accent); outline-offset:3px; }
+
+  /* track selector */
+  .track{ display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+  @media (max-width:640px){ .track{ grid-template-columns:repeat(2,1fr); } }
+  .track button{
+    font-family:'Archivo',sans-serif; font-size:12.8px; font-weight:500; text-align:left;
+    padding:9px 12px; border-radius:7px; cursor:pointer; line-height:1.3;
+    background:transparent; border:1px solid var(--line-2); color:var(--ink-2);
+    transition:border-color .16s ease, color .16s ease;
+  }
+  .track button:hover{ border-color:var(--accent); color:var(--ink); }
+  .track button[aria-pressed="true"]{ background:var(--accent); border-color:var(--accent); color:var(--accent-ink); font-weight:600; }
+
+  /* code */
+  .codewrap{ border:1px solid var(--line); border-radius:10px; overflow:hidden; }
+  .codetabs{ display:flex; background:var(--panel-2); border-bottom:1px solid var(--line); }
+  .codetabs button{
+    font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:.04em; padding:9px 15px;
+    background:none; border:none; border-bottom:1px solid transparent; color:var(--ink-3); cursor:pointer;
+  }
+  .codetabs button[aria-pressed="true"]{ color:var(--ink); border-bottom-color:var(--accent); }
+  pre{ margin:0; background:var(--code-bg); color:var(--code-ink); padding:16px 18px; overflow-x:auto;
+       font-family:'IBM Plex Mono',monospace; font-size:12px; line-height:1.72; }
+  pre .c{color:var(--code-dim);} pre .k{color:var(--code-key);} pre .s{color:var(--code-str);}
+
+  /* model card */
+  .modelcard{ display:grid; grid-template-columns:repeat(auto-fit,minmax(118px,1fr)); gap:1px; background:var(--line); border:1px solid var(--line); border-radius:10px; overflow:hidden; margin-bottom:16px; }
+  .modelcard div{ background:var(--panel); padding:12px 14px; }
+  .modelcard .v{ font-family:'IBM Plex Mono',monospace; font-size:13.5px; font-weight:500; margin-top:4px; }
+
+  /* evidence */
+  .ev-bar{ display:flex; align-items:baseline; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:14px; }
+  .ev-skills{ font-size:12.6px; color:var(--ink-2); margin:0 0 16px; }
+  .ev-skills b{ color:var(--ink-3); font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:.11em; text-transform:uppercase; font-weight:500; }
+  .ev{ border-bottom:1px solid var(--line); }
+  .ev:first-child{ border-top:1px solid var(--line); }
+  .ev-head{
+    display:flex; align-items:baseline; gap:16px; padding:16px 4px; cursor:pointer;
+    width:100%; text-align:left; background:none; border:none; font-family:inherit; color:var(--ink);
+  }
+  .ev-head:hover .ev-t{ color:var(--accent); }
+  .ev-match{ font-family:'IBM Plex Mono',monospace; font-size:12.5px; width:40px; flex:none; text-align:right; letter-spacing:-.01em; }
+  .ev-titles{ flex:1; min-width:0; }
+  .ev-t{ font-family:'Spectral',Georgia,serif; font-size:17px; font-weight:500; letter-spacing:-.01em; transition:color .16s ease; display:block; }
+  .ev-o{ font-size:12.8px; color:var(--ink-2); display:block; margin-top:1px; }
+  .ev-per{ font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:var(--ink-3); white-space:nowrap; }
+  .ev-chev{ color:var(--ink-3); font-size:12px; flex:none; width:10px; text-align:center; }
+  .ev-body{ padding:0 4px 20px 60px; }
+  @media (max-width:620px){ .ev-body{ padding-left:4px; } .ev-per{display:none;} }
+  .ev-body ul{ margin:0; padding-left:18px; }
+  .ev-body li{ margin-bottom:8px; font-size:14px; color:var(--ink-2); max-width:66ch; }
+  .ev-body li::marker{ color:var(--accent); }
+  .chips{ display:flex; gap:7px; flex-wrap:wrap; margin-top:14px; }
+  .chip{ font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:.04em; padding:3px 9px; border-radius:999px; border:1px solid var(--line); color:var(--ink-3); }
+  a.link{ color:var(--accent); font-weight:500; text-decoration:none; border-bottom:1px solid var(--accent-soft); }
+  a.link:hover{ border-bottom-color:var(--accent); }
+
+  /* cta */
+  .cta-row{ display:flex; gap:11px; flex-wrap:wrap; margin-top:18px; }
+  .btn{
+    font-family:'Archivo',sans-serif; font-size:13.5px; font-weight:600; cursor:pointer; letter-spacing:.01em;
+    padding:11px 18px; border-radius:8px; border:1px solid var(--accent); background:var(--accent);
+    color:var(--accent-ink); text-decoration:none; display:inline-block;
+  }
+  .btn.ghost{ background:transparent; color:var(--accent); }
+  .btn:hover{ opacity:.9; }
+
+  /* rail */
+  .rail{ position:sticky; top:74px; display:flex; flex-direction:column; gap:1px; background:var(--line); border:1px solid var(--line); border-radius:12px; overflow:hidden; box-shadow:var(--sheen); }
+  @media (max-width:1000px){ .rail{ position:static; } }
+  .rail section{ background:var(--panel); padding:17px 18px; }
+  .rail-h{ margin:0 0 13px; }
+  .bignum{ font-family:'IBM Plex Mono',monospace; font-size:50px; font-weight:400; line-height:1; letter-spacing:-.045em; }
+  .bignum span{ font-size:15px; color:var(--ink-3); letter-spacing:0; }
+  .prob{ font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:var(--ink-3); margin-top:7px; letter-spacing:.02em; }
+  .statuspill{ display:inline-block; font-family:'IBM Plex Mono',monospace; font-size:10px; font-weight:500; letter-spacing:.11em; margin-top:13px; }
+  .heat{ position:relative; height:4px; border-radius:3px; background:var(--panel-2); margin-top:15px; }
+  .heat .fill{ position:absolute; inset:0 auto 0 0; border-radius:3px; transition:width .55s cubic-bezier(.2,.7,.3,1); }
+  .heat .thr{ position:absolute; top:-3px; bottom:-3px; width:1px; background:var(--ink-3); left:70%; }
+  .heat-lab{ display:flex; justify-content:space-between; font-family:'IBM Plex Mono',monospace; font-size:9.5px; color:var(--ink-3); margin-top:7px; letter-spacing:.05em; }
+
+  .contrib{ display:flex; flex-direction:column; gap:9px; }
+  .c-row{ display:grid; grid-template-columns:92px 1fr 42px; gap:9px; align-items:center; font-family:'IBM Plex Mono',monospace; font-size:10.5px; letter-spacing:.02em; }
+  .c-name{ color:var(--ink-3); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .c-bar{ height:3px; background:var(--panel-2); border-radius:2px; overflow:hidden; }
+  .c-bar i{ display:block; height:100%; background:var(--accent); transition:width .45s ease; }
+  .c-val{ text-align:right; color:var(--ink-2); }
+
+  .log{ background:var(--code-bg); border-radius:7px; padding:11px 12px; height:126px; overflow-y:auto;
+        font-family:'IBM Plex Mono',monospace; font-size:10.2px; line-height:1.8; color:var(--code-ink); }
+  .log div{ white-space:nowrap; }
+  .log .t{ color:var(--code-dim); }
+  .log .e{ color:var(--code-key); }
+
+  /* toast */
+  #toast{ position:fixed; right:20px; bottom:20px; z-index:60; width:min(348px, calc(100vw - 40px)); }
+  .slack{
+    background:var(--panel); border:1px solid var(--line-2); border-radius:12px;
+    box-shadow:0 18px 40px rgba(0,0,0,.28); padding:15px 16px; display:flex; gap:12px; align-items:flex-start;
+    animation:slidein .45s cubic-bezier(.2,.8,.3,1);
+  }
+  @keyframes slidein{ from{ transform:translateY(12px); opacity:0; } }
+  .slack .av{ width:28px; height:28px; border-radius:7px; background:var(--accent); color:var(--accent-ink);
+              display:flex; align-items:center; justify-content:center; font-weight:700; font-size:11px; flex:none; }
+  .slack .who{ font-size:13px; font-weight:600; }
+  .slack .bd{ font-size:12.6px; margin-top:3px; color:var(--ink-2); line-height:1.5; }
+  .slack .bd b{ color:var(--ink); font-weight:600; }
+  .slack .x{ background:none; border:none; color:var(--ink-3); cursor:pointer; font-size:13px; line-height:1; padding:0; }
+
+  footer{ margin-top:46px; padding-top:22px; border-top:1px solid var(--line); font-size:12.8px; color:var(--ink-3); max-width:72ch; line-height:1.7; }
+  footer a{ color:var(--ink-2); }
+</style>
+</head>
+<body>
+
+<header>
+  <span class="appname">gtm-scoring-console</span>
+  <span class="ver">v1.1</span>
+  <span class="conn micro"><span class="led"></span>production</span>
+  <span class="spacer"></span>
+  <span class="hdr-score"><span class="status-dot" id="hdr-dot"></span>Score <b id="hdr-score">10</b><span id="hdr-status">Cold</span></span>
+</header>
+
+<div class="wrap">
+  <div class="masthead">
+    <div class="micro">Inbound lead · session open · scored live</div>
+    <div class="rule"></div>
+    <h1>You are the lead. This is the pipeline <em>scoring you.</em></h1>
+    <div class="rule" style="background:linear-gradient(90deg, var(--line), transparent 60%); margin:22px 0 18px;"></div>
+    <p class="dek">Chetan Yadav built a lead scoring system for a GTM team — PostgreSQL, a logistic regression model, a Slack bot that fires on hot leads. <b>This page is that system, pointed at you.</b> Fill in the enrichment record, tell it which role you're hiring for, and the evidence below re-ranks and rewrites itself for that role.</p>
+  </div>
+
+  <div class="cols">
+    <main>
+      <!-- 01 -->
+      <section class="stage" data-done="1">
+        <div class="stage-num">01</div>
+        <div class="stage-h"><h2>Ingest</h2><span class="micro">event received</span></div>
+        <p class="stage-sub">A lead record was created the moment you opened this page. Everything in it is inferred client-side, from your own browser.</p>
+        <div class="panel">
+          <table class="rec">
+            <tr><td>lead_id</td><td id="r-id">—</td></tr>
+            <tr><td>first_seen</td><td id="r-seen">—</td></tr>
+            <tr><td>source</td><td id="r-src">—</td></tr>
+            <tr><td>device</td><td id="r-dev">—</td></tr>
+            <tr><td>days_since_engagement</td><td>0 <span style="color:var(--ink-3)">— engaged today</span></td></tr>
+            <tr><td>status</td><td><span id="r-status" style="color:var(--cold);">NEW · UNQUALIFIED</span></td></tr>
+          </table>
+        </div>
+      </section>
+
+      <!-- 02 -->
+      <section class="stage" id="stage-enrich">
+        <div class="stage-num">02</div>
+        <div class="stage-h"><h2>Enrich</h2><span class="micro">optional · twenty seconds</span></div>
+        <p class="stage-sub">In the production pipeline this arrives from a data provider. Here you fill it in yourself, and each field shows the weight it carries.</p>
+        <div class="panel panel-pad">
+          <div class="form-grid">
+            <div class="f-row">
+              <label for="f-name">Name</label>
+              <input id="f-name" type="text" placeholder="Priya Raman" autocomplete="name">
+            </div>
+            <div class="f-row">
+              <label for="f-company">Company</label>
+              <input id="f-company" type="text" placeholder="Northwind Labs" autocomplete="organization">
+            </div>
+            <div class="f-row">
+              <label for="f-seniority">Seniority <span class="w">w ≤ 1.60</span></label>
+              <select id="f-seniority">
+                <option value="none">— not provided —</option>
+                <option value="founder">Founder / CEO</option>
+                <option value="vp">VP / Head of</option>
+                <option value="manager">Manager / Lead</option>
+                <option value="ic">Individual contributor</option>
+                <option value="student">Student / peer</option>
+              </select>
+            </div>
+            <div class="f-row">
+              <label for="f-size">Company size <span class="w">w ≤ 1.00</span></label>
+              <select id="f-size">
+                <option value="none">— not provided —</option>
+                <option value="big">200+</option>
+                <option value="mid">51–200</option>
+                <option value="small">11–50</option>
+                <option value="tiny">1–10</option>
+                <option value="solo">Just me</option>
+              </select>
+            </div>
+            <div class="f-row wide">
+              <label for="f-intent">Intent <span class="w">w ≤ 1.40 · strongest single predictor</span></label>
+              <select id="f-intent">
+                <option value="none">— not provided —</option>
+                <option value="now">Hiring right now</option>
+                <option value="soon">Hiring within the quarter</option>
+                <option value="later">Building a team eventually</option>
+                <option value="browsing">Just having a look</option>
+              </select>
+            </div>
+            <div class="f-row wide">
+              <label id="tracklab">Which role are you reading this for?</label>
+              <div class="track" role="group" aria-labelledby="tracklab" id="trackbox"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 03 -->
+      <section class="stage">
+        <div class="stage-num">03</div>
+        <div class="stage-h"><h2>Score</h2><span class="micro">logistic regression</span></div>
+        <p class="stage-sub">The same shape as the model in the repo: test which signals actually predict conversion in SQL first, then fit a logistic regression so every score can explain itself.</p>
+        <div class="modelcard">
+          <div><div class="micro">model</div><div class="v">logit v4</div></div>
+          <div><div class="micro">features</div><div class="v">5</div></div>
+          <div><div class="micro">intercept</div><div class="v">−3.20</div></div>
+          <div><div class="micro">threshold</div><div class="v">0.70</div></div>
+          <div><div class="micro">your z</div><div class="v" id="m-z">−2.15</div></div>
+        </div>
+        <div class="codewrap">
+          <div class="codetabs" role="group" aria-label="Code view">
+            <button type="button" data-code="sql" aria-pressed="true">query.sql</button>
+            <button type="button" data-code="py" aria-pressed="false">score.py</button>
+          </div>
+          <pre id="codeblock"></pre>
+        </div>
+      </section>
+
+      <!-- 04 -->
+      <section class="stage">
+        <div class="stage-num">04</div>
+        <div class="stage-h"><h2>Match</h2><span class="micro">evidence ranked</span></div>
+        <p class="stage-sub">The vendor record, ranked against the role you selected. Change the role and the order, the bullets and the emphasis all change with it — same facts, argued for the job in front of them.</p>
+        <div class="ev-bar">
+          <div class="micro" id="ev-meta">6 records · ranked for growth / GTM</div>
+          <div class="micro" id="ev-count"></div>
+        </div>
+        <p class="ev-skills" id="ev-skills"></p>
+        <div id="evidence"></div>
+
+        <div class="panel panel-pad" style="margin-top:22px;">
+          <div class="micro" style="margin-bottom:11px;">Background &amp; credentials</div>
+          <table class="rec">
+            <tr><td>education</td><td>B.A. (Hons) Economics — Delhi University, School of Open Learning</td></tr>
+            <tr><td></td><td>MBBS (incomplete) — UPHSD Medical College, Metro Manila</td></tr>
+            <tr><td></td><td>CBSE Senior Secondary, PCMB · NEET AIR 2019: rank &lt;7,000</td></tr>
+            <tr><td></td><td>Self-taught accountancy to 11th/12th standard alongside college and tutoring</td></tr>
+            <tr><td>certifications</td><td>Google Digital Marketing &amp; E-Commerce · Microsoft 365 Fundamentals</td></tr>
+            <tr><td></td><td>Operations Management, UPenn (in progress) · HSK-1 Chinese, Peking University (in progress)</td></tr>
+            <tr><td>languages</td><td>English · Hindi · Marathi (compliance signage) · Chinese HSK-1 in progress</td></tr>
+            <tr><td>location</td><td>Delhi, India</td></tr>
+          </table>
+        </div>
+      </section>
+
+      <!-- 05 -->
+      <section class="stage" id="stage-route">
+        <div class="stage-num">05</div>
+        <div class="stage-h"><h2>Route</h2><span class="micro" id="route-tag">waiting on threshold</span></div>
+        <p class="stage-sub" id="route-sub">At p ≥ 0.70 the pipeline fires a Slack alert and routes the lead to its owner. You can also ignore the model entirely and just email him — it takes this well.</p>
+        <div class="panel panel-pad">
+          <table class="rec">
+            <tr><td>owner</td><td>Chetan Yadav — Delhi, India</td></tr>
+            <tr><td>email</td><td><a class="link" href="mailto:chetan00yadav@gmail.com" data-sig="link">chetan00yadav@gmail.com</a></td></tr>
+            <tr><td>phone</td><td>+91 92679 69022</td></tr>
+            <tr><td>github</td><td><a class="link" href="https://github.com/gtm-cyadav" target="_blank" rel="noopener" data-sig="link">github.com/gtm-cyadav</a></td></tr>
+            <tr><td>response_sla</td><td>same day, realistically</td></tr>
+          </table>
+          <div class="cta-row">
+            <a class="btn" id="handoff" href="mailto:chetan00yadav@gmail.com">Hand this record to Chetan</a>
+            <a class="btn ghost" href="https://github.com/gtm-cyadav" target="_blank" rel="noopener" data-sig="link">Open the repositories</a>
+          </div>
+          <p style="font-size:12.5px; color:var(--ink-3); margin:14px 0 0;">The handoff opens your own mail client with this record already written into the draft. Nothing sends without you.</p>
+        </div>
+      </section>
+
+      <footer>
+        Everything here runs in your browser — no analytics, no cookies, no network calls. The scoring is real logistic regression with the coefficients printed above, and the fields it uses are the same three the production model uses: seniority, company size, recency of engagement. That version, the one scoring actual inbound leads and posting to Slack, lives at <a href="https://github.com/gtm-cyadav/gtm-lead-scoring" target="_blank" rel="noopener">github.com/gtm-cyadav/gtm-lead-scoring</a>.
+      </footer>
+    </main>
+
+    <aside class="rail">
+      <section>
+        <div class="micro rail-h">Lead score</div>
+        <div class="bignum" id="big-score">10<span>/100</span></div>
+        <div class="prob" id="big-prob">p(convert) = 0.104</div>
+        <div><span class="statuspill" id="big-pill" style="color:var(--cold);">COLD · ANONYMOUS</span></div>
+        <div class="heat"><div class="fill" id="heat-fill" style="width:10%; background:var(--cold);"></div><div class="thr"></div></div>
+        <div class="heat-lab"><span>0</span><span>MQL 70</span><span>100</span></div>
+      </section>
+      <section>
+        <div class="micro rail-h">Why — feature contributions</div>
+        <div class="contrib" id="contrib"></div>
+      </section>
+      <section>
+        <div class="micro rail-h">Logistic curve · your position</div>
+        <svg id="sig" viewBox="0 0 268 112" style="width:100%; height:auto; display:block;" role="img" aria-label="Logistic curve with your current score plotted on it"></svg>
+      </section>
+      <section>
+        <div class="micro rail-h">Event log</div>
+        <div class="log" id="log"></div>
+      </section>
+    </aside>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---------------- tracks ---------------- */
+  var TRACKS = [
+    {k:"growth",   n:"Growth / GTM",        label:"Growth / GTM"},
+    {k:"perf",     n:"Performance marketing", label:"Performance marketing"},
+    {k:"brand",    n:"Brand &amp; content",  label:"Brand & content"},
+    {k:"research", n:"Market research",      label:"Market research & insights"},
+    {k:"ecom",     n:"E-commerce / D2C",     label:"E-commerce / D2C"},
+    {k:"data",     n:"Data &amp; analytics", label:"Data & analytics"}
+  ];
+  var TRACK_NAME = {};
+  TRACKS.forEach(function(t){ TRACK_NAME[t.k] = t.label; });
+
+  var SKILLS = {
+    growth:   ["Google Ads","Meta Ads","CRM","Lead scoring","SEO","n8n","Automation workflows"],
+    perf:     ["Google Ads","Meta Ads","Meta Pixel","GA4","Cost per lead","Google Trends","Budget planning"],
+    brand:    ["Market research","Copy in English / Hindi / Marathi","Content production","Midjourney","PowerPoint"],
+    research: ["Market research","Google Trends","SQL (PostgreSQL)","Excel","Multi-language search","Competitor teardowns"],
+    ecom:     ["Shopify","SEO","Marketplace economics","Indian payment methods","GA4","Product pages"],
+    data:     ["SQL (PostgreSQL)","Python","Logistic regression","Google Colab","Firebase","GA4","Data cleaning"]
+  };
+
+  /* ---------------- model ---------------- */
+  var W = {
+    intercept:-3.2,
+    seniority:{none:0.10, founder:1.60, vp:1.30, manager:0.90, ic:0.50, student:0.20},
+    size:{none:0.05, big:1.00, mid:0.85, small:0.70, tiny:0.50, solo:0.30},
+    intent:{none:0.00, now:1.40, soon:1.00, later:0.50, browsing:0.10},
+    engagementMax:2.40, recency:0.90
+  };
+  var LABEL = {
+    seniority:{none:"not provided",founder:"Founder / CEO",vp:"VP / Head of",manager:"Manager / Lead",ic:"Individual contributor",student:"Student / peer"},
+    size:{none:"not provided",big:"200+",mid:"51-200",small:"11-50",tiny:"1-10",solo:"1"},
+    intent:{none:"not provided",now:"hiring_now",soon:"hiring_this_quarter",later:"eventually",browsing:"browsing"}
+  };
+
+  var state = { name:"", company:"", seniority:"none", size:"none", intent:"none",
+                track:"growth", sections:0, links:0, dwell:0, depth:0, alerted:false, converted:false };
+  var leadId = "anon_" + Math.floor(1000 + Math.random()*8999);
+
+  function engagement(){
+    return Math.min(1, Math.min(state.sections,5)/5*0.38 + Math.min(state.links,3)/3*0.20
+      + Math.min(state.dwell,150)/150*0.22 + state.depth*0.20);
+  }
+  function parts(){
+    return { seniority:W.seniority[state.seniority], size:W.size[state.size], intent:W.intent[state.intent],
+             engagement:engagement()*W.engagementMax, recency:W.recency };
+  }
+  function zOf(){ var p=parts(); return W.intercept+p.seniority+p.size+p.intent+p.engagement+p.recency; }
+  function sig(z){ return 1/(1+Math.exp(-z)); }
+  function $(id){ return document.getElementById(id); }
+  function num(n,d){ return (n<0?"−":"") + Math.abs(n).toFixed(d===undefined?2:d); }
+  function heatColor(s){ return s>=70 ? "var(--hot)" : (s>=45 ? "var(--warm)" : "var(--cold)"); }
+  function statusOf(s){
+    if (state.converted) return {t:"CONVERTED", c:"var(--good)"};
+    if (s>=70) return {t:"MQL · ROUTE TO OWNER", c:"var(--hot)"};
+    if (s>=45) return {t:"WARM · NURTURE", c:"var(--warm)"};
+    return {t: state.name ? "COLD · IDENTIFIED" : "COLD · ANONYMOUS", c:"var(--cold)"};
+  }
+
+  /* ---------------- log ---------------- */
+  var logEl = $("log");
+  function stamp(){ var d=new Date(); return ("0"+d.getHours()).slice(-2)+":"+("0"+d.getMinutes()).slice(-2)+":"+("0"+d.getSeconds()).slice(-2); }
+  function log(ev, detail){
+    var row=document.createElement("div");
+    var t=document.createElement("span"); t.className="t"; t.textContent=stamp()+" ";
+    var e=document.createElement("span"); e.className="e"; e.textContent=ev+" ";
+    row.appendChild(t); row.appendChild(e); row.appendChild(document.createTextNode(detail||""));
+    logEl.appendChild(row); logEl.scrollTop=logEl.scrollHeight;
+    while (logEl.children.length>60) logEl.removeChild(logEl.firstChild);
+  }
+
+  /* ---------------- sigmoid ---------------- */
+  function drawSigmoid(z,p){
+    var w=268,h=112,padL=24,padR=8,padT=9,padB=19, iw=w-padL-padR, ih=h-padT-padB;
+    var X=function(zz){ return padL+(zz+4)/8*iw; }, Y=function(pp){ return padT+(1-pp)*ih; };
+    var d="",i,zz;
+    for(i=0;i<=72;i++){ zz=-4+8*i/72; d+=(i?" L":"M")+X(zz).toFixed(1)+","+Y(sig(zz)).toFixed(1); }
+    var cz=Math.max(-4,Math.min(4,z)), ns="http://www.w3.org/2000/svg", svg=$("sig");
+    while(svg.firstChild) svg.removeChild(svg.firstChild);
+    function el(tag,a){ var n=document.createElementNS(ns,tag); for(var k in a) n.setAttribute(k,a[k]); return n; }
+    svg.appendChild(el("line",{x1:padL,y1:Y(0.7),x2:w-padR,y2:Y(0.7),stroke:"var(--line-2)","stroke-dasharray":"2 4","stroke-width":1}));
+    svg.appendChild(el("line",{x1:padL,y1:padT,x2:padL,y2:h-padB,stroke:"var(--line)","stroke-width":1}));
+    svg.appendChild(el("line",{x1:padL,y1:h-padB,x2:w-padR,y2:h-padB,stroke:"var(--line)","stroke-width":1}));
+    svg.appendChild(el("path",{d:d,fill:"none",stroke:"var(--accent)","stroke-width":1.6}));
+    svg.appendChild(el("line",{x1:X(cz),y1:Y(sig(cz)),x2:X(cz),y2:h-padB,stroke:"var(--line-2)","stroke-width":1,"stroke-dasharray":"1 3"}));
+    svg.appendChild(el("circle",{cx:X(cz),cy:Y(sig(cz)),r:3.6,fill:heatColor(Math.round(p*100)),stroke:"var(--panel)","stroke-width":1.6}));
+    function txt(x,y,s,anchor){
+      var t=el("text",{x:x,y:y,fill:"var(--ink-3)","font-size":"8.5","font-family":"'IBM Plex Mono', monospace","text-anchor":anchor||"start"});
+      t.textContent=s; return t;
+    }
+    svg.appendChild(txt(2,Y(1)+3,"1.0")); svg.appendChild(txt(2,Y(0.7)+3,"0.7")); svg.appendChild(txt(2,Y(0)+3,"0.0"));
+    svg.appendChild(txt(padL,h-5,"z −4")); svg.appendChild(txt(w-padR,h-5,"+4","end"));
+  }
+
+  /* ---------------- contributions ---------------- */
+  var CN=[["seniority","seniority"],["size","company_size"],["intent","intent"],["engagement","engagement"],["recency","recency"]];
+  function drawContrib(){
+    var p=parts(), box=$("contrib"); box.innerHTML="";
+    CN.forEach(function(pair){
+      var v=p[pair[0]], row=document.createElement("div"); row.className="c-row";
+      var n=document.createElement("div"); n.className="c-name"; n.textContent=pair[1];
+      var b=document.createElement("div"); b.className="c-bar";
+      var i=document.createElement("i"); i.style.width=Math.max(1.5,v/2.4*100)+"%";
+      if(pair[0]==="engagement") i.style.background="var(--hot)";
+      b.appendChild(i);
+      var val=document.createElement("div"); val.className="c-val"; val.textContent="+"+v.toFixed(2);
+      row.appendChild(n); row.appendChild(b); row.appendChild(val); box.appendChild(row);
+    });
+    var row=document.createElement("div"); row.className="c-row"; row.style.paddingTop="8px"; row.style.borderTop="1px solid var(--line)";
+    var n=document.createElement("div"); n.className="c-name"; n.textContent="intercept";
+    var b=document.createElement("div"); b.className="c-bar"; var i=document.createElement("i");
+    i.style.width="100%"; i.style.background="var(--line-2)"; b.appendChild(i);
+    var val=document.createElement("div"); val.className="c-val"; val.textContent="−3.20";
+    row.appendChild(n); row.appendChild(b); row.appendChild(val); box.appendChild(row);
+  }
+
+  /* ---------------- code ---------------- */
+  var codeMode="sql";
+  function renderCode(){
+    var pre=$("codeblock"); pre.innerHTML="";
+    var z=zOf(), p=sig(z), score=Math.round(p*100), company=state.company||"unknown", lines;
+    if(codeMode==="sql"){
+      lines=[
+        ["c","-- the query that decides whether you are worth a Slack ping"],
+        ["","SELECT lead_id,"],
+        ["","       seniority,"],
+        ["","       company_size,"],
+        ["","       intent,"],
+        ["","       engagement_depth,"],
+        ["","       days_since_engagement"],
+        ["","FROM   leads"],
+        ["","WHERE  lead_id = '"+leadId+"'"],
+        ["","  AND  company  = '"+company+"';"],
+        ["",""],
+        ["c","-- 1 row"],
+        ["c","-- "+leadId+" | "+LABEL.seniority[state.seniority]+" | "+LABEL.size[state.size]+" | "+LABEL.intent[state.intent]+" | "+engagement().toFixed(2)+" | 0"]
+      ];
+    } else {
+      var pr=parts();
+      lines=[
+        ["c","# coefficients fitted on converted vs. lost leads"],
+        ["","z  = -3.20"],
+        ["","z += "+pr.seniority.toFixed(2)+"   # seniority: "+LABEL.seniority[state.seniority]],
+        ["","z += "+pr.size.toFixed(2)+"   # company_size: "+LABEL.size[state.size]],
+        ["","z += "+pr.intent.toFixed(2)+"   # intent: "+LABEL.intent[state.intent]],
+        ["","z += "+pr.engagement.toFixed(2)+"   # engagement_depth: "+engagement().toFixed(2)],
+        ["","z += 0.90   # recency: engaged today"],
+        ["",""],
+        ["","p = 1 / (1 + exp(-z))   # "+p.toFixed(3)],
+        ["","score = round(p * 100)  # "+score],
+        ["",""],
+        ["","if p >= 0.70:"],
+        ["","    slack.post('#gtm-lead-alerts', alert(lead))"]
+      ];
+    }
+    lines.forEach(function(l){
+      var s=document.createElement("span"); if(l[0]) s.className=l[0];
+      s.textContent=l[1]+"\n"; pre.appendChild(s);
+    });
+  }
+
+  /* ---------------- evidence ---------------- */
+  var ALL = ["growth","perf","brand","research","ecom","data"];
+  var EVIDENCE = [
+    {
+      id:"norindic", t:"Brand Marketing & Research Associate",
+      o:"Polar Quality India (Norindic Sea Foods) — importer of Norwegian salmon",
+      per:"Aug 2026 – present",
+      m:{growth:88, perf:66, brand:86, research:98, ecom:92, data:84},
+      b:[
+        {k:["research","growth","ecom","brand"], t:"Researched salmon demand across seven emerging markets in South Asia and the Gulf, searching in local languages as well as English."},
+        {k:["research","data","perf"], t:"Pulled Google Trends data for India across search, YouTube and Shopping, stripped out unrelated results, and delivered a 57-page report plus clean CSVs built for dashboards."},
+        {k:["ecom","growth","brand","perf"], t:"Reviewed the company website and made the case for moving it to Shopify — two homepage prototypes and a plan covering SEO, product pages and Indian payment methods."},
+        {k:["ecom","growth","research"], t:"Compared Blinkit and Zepto on how they operate and what they charge, to judge whether listing there was worth it."},
+        {k:["research","ecom","data"], t:"Researched suppliers for cold-chain operations — 5 cold stores, ~12 vehicles, −18°C — and specified food-grade protective gear for the processing unit."},
+        {k:["brand","research"], t:"Wrote the factory's safety and FSSAI compliance signage in English, Hindi and Marathi."}
+      ],
+      c:[{k:["research","data"],t:"Google Trends"},{k:["research","growth","brand"],t:"Market research"},{k:["ecom","growth"],t:"Shopify"},
+         {k:["ecom","perf","growth"],t:"SEO"},{k:["ecom","research"],t:"Marketplace economics"},{k:["brand"],t:"Trilingual copy"},{k:["data"],t:"CSV pipelines"}]
+    },
+    {
+      id:"uchitvu", t:"Co-Founder & Head of Marketing",
+      o:"UchitVu — bootstrapped marketing agency",
+      per:"2023 – 2026",
+      m:{growth:96, perf:99, brand:84, research:68, ecom:72, data:64},
+      b:[
+        {k:ALL, t:"Built and ran a marketing agency from scratch, owning strategy and delivery for the agency and its clients."},
+        {k:["perf","growth","data","ecom"], t:"Ran Google and Meta ad campaigns for EdTech clients and brought cost per lead down."},
+        {k:["growth","brand","perf","research"], t:"Handled planning, hiring, budgets, team management and client negotiations across two years of trading."},
+        {k:["brand","growth"], t:"Positioned and sold the agency itself — every client was won, not inherited."}
+      ],
+      c:[{k:["perf","growth"],t:"Google Ads"},{k:["perf","growth"],t:"Meta Ads"},{k:["perf","data"],t:"Cost per lead"},
+         {k:["growth","brand"],t:"Agency ops"},{k:["growth"],t:"Hiring"},{k:["brand"],t:"Positioning"},{k:["research","perf"],t:"Budget planning"}]
+    },
+    {
+      id:"leadscore", t:"GTM Lead Scoring & Alert Pipeline",
+      o:"Project — PostgreSQL, Python, Slack", per:"github.com/gtm-cyadav/gtm-lead-scoring",
+      link:"https://github.com/gtm-cyadav/gtm-lead-scoring",
+      m:{growth:94, perf:82, brand:48, research:78, ecom:62, data:99},
+      b:[
+        {k:ALL, t:"Built a PostgreSQL database that scores incoming leads on company size, seniority and how recently they engaged — the same three signals scoring you right now."},
+        {k:["data","research"], t:"Used SQL to check which of those signals actually predicted conversion before building any model."},
+        {k:["data","research"], t:"Trained a logistic regression in Python to predict which leads would convert, and why — the explanation mattered as much as the prediction."},
+        {k:["growth","perf","data"], t:"Built a Slack bot that scores new leads as they arrive and alerts the team automatically, so nobody sits refreshing a CRM tab."}
+      ],
+      c:[{k:["data"],t:"PostgreSQL"},{k:["data"],t:"Python"},{k:["data"],t:"Logistic regression"},
+         {k:["growth","perf"],t:"Lead scoring"},{k:["growth","perf"],t:"Slack alerts"},{k:["growth"],t:"RevOps"}]
+    },
+    {
+      id:"d2c", t:"D2C Skincare E-Commerce Analytics",
+      o:"Project — Python", per:"github.com/gtm-cyadav/d2c_skincare_brand_data_analytics",
+      link:"https://github.com/gtm-cyadav/d2c_skincare_brand_data_analytics",
+      m:{growth:74, perf:78, brand:54, research:86, ecom:90, data:94},
+      b:[
+        {k:["data","research"], t:"Cleaned and validated a synthetic skincare sales dataset using reusable Python scripts."},
+        {k:ALL, t:"Broke customers down by gender, region, acquisition channel and signup date to find the patterns worth spending against."},
+        {k:["ecom","perf","growth"], t:"Channel-level view of who actually converts and who only arrives — the input to any sane D2C budget split."}
+      ],
+      c:[{k:["data"],t:"Python"},{k:["data","research"],t:"Data validation"},{k:["research","ecom","growth"],t:"Segmentation"},
+         {k:["perf","ecom"],t:"Acquisition channels"},{k:["ecom"],t:"D2C"}]
+    },
+    {
+      id:"trivia", t:"Desi Trivia Race — two-player web game",
+      o:"Project — Firebase, JavaScript", per:"github.com/gtm-cyadav/gf_bf_game_trivia",
+      link:"https://github.com/gtm-cyadav/gf_bf_game_trivia",
+      m:{growth:64, perf:44, brand:74, research:48, ecom:52, data:82},
+      b:[
+        {k:["data"], t:"Two players answer the same question at the same time, synced live across devices through Firebase."},
+        {k:["data"], t:"Scored on speed as well as accuracy, timed on each phone so a slow clock can't change the result."},
+        {k:["brand","growth","research"], t:"Wrote 121 questions across six categories — the content is the product, and all of it is his."},
+        {k:ALL, t:"Runs free on GitHub Pages with no server, and set database rules to control access."}
+      ],
+      c:[{k:["data"],t:"Firebase"},{k:["data"],t:"Realtime sync"},{k:["data"],t:"Security rules"},
+         {k:["brand"],t:"121 questions written"},{k:["growth","ecom"],t:"Shipped solo"}]
+    },
+    {
+      id:"tutor", t:"Private Tutor",
+      o:"One-on-one, alongside everything else", per:"2021 – 2026",
+      m:{growth:62, perf:50, brand:68, research:60, ecom:46, data:58},
+      b:[
+        {k:["brand","growth"], t:"Taught students one-on-one, managing parents' expectations and adapting to how each student learned."},
+        {k:ALL, t:"Tracked progress, gave honest feedback and delivered under steady pressure — the same skills client work needs."},
+        {k:["research","data"], t:"Five years of explaining difficult things to people who did not want to hear them, which is the underrated half of analysis."}
+      ],
+      c:[{k:["brand","growth"],t:"Client management"},{k:["brand"],t:"Explaining things"},{k:["research","data"],t:"Progress tracking"}]
+    }
+  ];
+
+  function forTrack(list){
+    var hit = list.filter(function(x){ return x.k.indexOf(state.track) !== -1; });
+    return hit.length ? hit : list;
+  }
+
+  function renderEvidence(){
+    var host=$("evidence"); host.innerHTML="";
+    var sorted=EVIDENCE.slice().sort(function(a,b){ return b.m[state.track]-a.m[state.track]; });
+    $("ev-meta").textContent = sorted.length+" records · ranked for "+TRACK_NAME[state.track];
+    $("ev-count").textContent = "top match "+sorted[0].m[state.track]+"%";
+    var sk=$("ev-skills"); sk.innerHTML="";
+    var b=document.createElement("b"); b.textContent="Stack for this role — "; sk.appendChild(b);
+    sk.appendChild(document.createTextNode(SKILLS[state.track].join(" · ")));
+
+    sorted.forEach(function(rec, idx){
+      var open = idx<2;
+      var card=document.createElement("article"); card.className="ev";
+      var head=document.createElement("button"); head.className="ev-head"; head.type="button";
+      head.setAttribute("aria-expanded", open?"true":"false");
+
+      var match=document.createElement("span"); match.className="ev-match";
+      match.textContent=rec.m[state.track]+"%";
+      match.style.color = rec.m[state.track]>=90 ? "var(--hot)" : (rec.m[state.track]>=70 ? "var(--warm)" : "var(--ink-3)");
+
+      var titles=document.createElement("span"); titles.className="ev-titles";
+      var t1=document.createElement("span"); t1.className="ev-t"; t1.textContent=rec.t;
+      var t2=document.createElement("span"); t2.className="ev-o"; t2.textContent=rec.o;
+      titles.appendChild(t1); titles.appendChild(t2);
+
+      var per=document.createElement("span"); per.className="ev-per"; per.textContent=rec.per;
+      var chev=document.createElement("span"); chev.className="ev-chev"; chev.textContent=open?"−":"+";
+      head.appendChild(match); head.appendChild(titles); head.appendChild(per); head.appendChild(chev);
+
+      var body=document.createElement("div"); body.className="ev-body"; body.hidden=!open;
+      var ul=document.createElement("ul");
+      forTrack(rec.b).forEach(function(line){
+        var li=document.createElement("li"); li.textContent=line.t; ul.appendChild(li);
+      });
+      body.appendChild(ul);
+      var chips=document.createElement("div"); chips.className="chips";
+      forTrack(rec.c).forEach(function(c){
+        var s=document.createElement("span"); s.className="chip"; s.textContent=c.t; chips.appendChild(s);
+      });
+      body.appendChild(chips);
+      if(rec.link){
+        var p=document.createElement("p"); p.style.margin="14px 0 0";
+        var a=document.createElement("a"); a.className="link"; a.href=rec.link; a.target="_blank"; a.rel="noopener";
+        a.setAttribute("data-sig","link"); a.textContent=rec.per+" →";
+        p.appendChild(a); body.appendChild(p);
+      }
+      head.addEventListener("click", function(){
+        var nowOpen=body.hidden;
+        body.hidden=!nowOpen;
+        head.setAttribute("aria-expanded", nowOpen?"true":"false");
+        chev.textContent=nowOpen?"−":"+";
+        if(nowOpen){ state.sections+=1; log("record.open", rec.id); recompute(); }
+      });
+      card.appendChild(head); card.appendChild(body); host.appendChild(card);
+    });
+  }
+
+  /* ---------------- alert ---------------- */
+  function fireAlert(score){
+    var host=$("toast"); host.innerHTML="";
+    var card=document.createElement("div"); card.className="slack";
+    var av=document.createElement("div"); av.className="av"; av.textContent="LB";
+    var body=document.createElement("div"); body.style.flex="1";
+    var ch=document.createElement("div"); ch.className="micro"; ch.textContent="#gtm-lead-alerts";
+    var who=document.createElement("div"); who.className="who"; who.textContent="LeadBot";
+    var bd=document.createElement("div"); bd.className="bd";
+    bd.appendChild(document.createTextNode("New MQL — "));
+    var b=document.createElement("b");
+    b.textContent=(state.name||"anonymous lead")+(state.company?" at "+state.company:"");
+    bd.appendChild(b);
+    bd.appendChild(document.createTextNode(" scored "+score+"/100, reading for "+TRACK_NAME[state.track]+". Routing to Chetan."));
+    body.appendChild(ch); body.appendChild(who); body.appendChild(bd);
+    var x=document.createElement("button"); x.className="x"; x.type="button";
+    x.setAttribute("aria-label","Dismiss"); x.textContent="✕";
+    x.addEventListener("click", function(){ host.innerHTML=""; });
+    card.appendChild(av); card.appendChild(body); card.appendChild(x);
+    host.appendChild(card);
+    log("slack.post", "#gtm-lead-alerts MQL "+score);
+  }
+
+  /* ---------------- handoff ---------------- */
+  function updateHandoff(score,p){
+    var subject="Inbound: "+(state.name||"someone")+(state.company?" @ "+state.company:"")+" — scored "+score+"/100";
+    var lines=[
+      "Chetan — your own lead scoring page scored me "+score+"/100, so here I am.","",
+      "name:        "+(state.name||"—"),
+      "company:     "+(state.company||"—"),
+      "seniority:   "+LABEL.seniority[state.seniority],
+      "size:        "+LABEL.size[state.size],
+      "intent:      "+LABEL.intent[state.intent],
+      "role track:  "+TRACK_NAME[state.track],
+      "score:       "+score+"/100  (p = "+p.toFixed(3)+")",
+      "lead_id:     "+leadId,"",
+      "What I'm getting in touch about:",""
+    ];
+    $("handoff").href="mailto:chetan00yadav@gmail.com?subject="+encodeURIComponent(subject)+"&body="+encodeURIComponent(lines.join("\n"));
+  }
+
+  /* ---------------- recompute ---------------- */
+  function recompute(){
+    var z=zOf(), p=sig(z), score=Math.round(p*100), st=statusOf(score);
+    $("big-score").textContent=score;
+    var sp=document.createElement("span"); sp.textContent="/100"; $("big-score").appendChild(sp);
+    $("big-prob").textContent="p(convert) = "+p.toFixed(3);
+    $("hdr-score").textContent=score;
+    $("hdr-status").textContent=st.t.split(" · ")[0];
+    $("hdr-dot").style.background=heatColor(score);
+    $("m-z").textContent=num(z);
+    var pill=$("big-pill"); pill.textContent=st.t; pill.style.color=st.c;
+    $("heat-fill").style.width=score+"%";
+    $("heat-fill").style.background=heatColor(score);
+    var rs=$("r-status");
+    rs.textContent = state.converted ? "CONVERTED" : (score>=70 ? "MQL · ROUTED" : (state.name ? "IDENTIFIED · UNQUALIFIED" : "NEW · UNQUALIFIED"));
+    rs.style.color = state.converted ? "var(--good)" : heatColor(score);
+    $("stage-enrich").setAttribute("data-done",(state.seniority!=="none"||state.intent!=="none")?"1":"0");
+    $("stage-route").setAttribute("data-done", score>=70?"1":"0");
+    $("route-tag").textContent = score>=70 ? "alert fired" : "waiting on threshold";
+    drawContrib(); drawSigmoid(z,p); renderCode(); updateHandoff(score,p);
+    if(score>=70 && !state.alerted){ state.alerted=true; fireAlert(score); }
+  }
+
+  /* ---------------- wiring ---------------- */
+  var tb=$("trackbox");
+  TRACKS.forEach(function(t){
+    var b=document.createElement("button"); b.type="button";
+    b.setAttribute("data-track",t.k);
+    b.setAttribute("aria-pressed", t.k===state.track ? "true" : "false");
+    b.textContent=t.label;
+    b.addEventListener("click", function(){
+      tb.querySelectorAll("button").forEach(function(x){ x.setAttribute("aria-pressed","false"); });
+      b.setAttribute("aria-pressed","true");
+      state.track=t.k;
+      log("model.rerank","track="+t.k);
+      renderEvidence(); recompute();
+    });
+    tb.appendChild(b);
+  });
+
+  $("r-id").textContent=leadId;
+  $("r-seen").textContent=new Date().toLocaleString(undefined,{dateStyle:"medium",timeStyle:"short"});
+  var ref=""; try{ ref=document.referrer ? new URL(document.referrer).hostname : ""; }catch(e){ ref=""; }
+  $("r-src").textContent=ref||"direct / unknown";
+  $("r-dev").textContent=(window.innerWidth<760?"mobile":"desktop")+" · "+window.innerWidth+"×"+window.innerHeight;
+
+  ["f-name","f-company"].forEach(function(id){
+    $(id).addEventListener("input", function(){
+      state[id==="f-name"?"name":"company"]=this.value.slice(0,60); recompute();
+    });
+    $(id).addEventListener("change", function(){
+      if(this.value) log("lead.enrich",(id==="f-name"?"name":"company")+" set");
+    });
+  });
+  [["f-seniority","seniority"],["f-size","size"],["f-intent","intent"]].forEach(function(pair){
+    $(pair[0]).addEventListener("change", function(){
+      state[pair[1]]=this.value; log("lead.enrich",pair[1]+"="+this.value); recompute();
+    });
+  });
+  document.querySelectorAll("[data-code]").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      document.querySelectorAll("[data-code]").forEach(function(b){ b.setAttribute("aria-pressed","false"); });
+      btn.setAttribute("aria-pressed","true"); codeMode=btn.getAttribute("data-code"); renderCode();
+    });
+  });
+  document.addEventListener("click", function(e){
+    var a=e.target.closest ? e.target.closest("[data-sig='link']") : null;
+    if(a){ state.links+=1; log("link.click", a.getAttribute("href")); recompute(); }
+  });
+  $("handoff").addEventListener("click", function(){
+    state.converted=true; log("lead.convert","status=converted");
+    $("route-sub").textContent="Record handed off. In the production pipeline this is where the row flips to converted and the model gets one more example to learn from.";
+    recompute();
+  });
+
+  var maxDepth=0;
+  window.addEventListener("scroll", function(){
+    var h=document.body.scrollHeight-window.innerHeight;
+    var d=h>0 ? Math.min(1, window.scrollY/h) : 1;
+    if(d>maxDepth+0.08){ maxDepth=d; state.depth=d; recompute(); }
+  },{passive:true});
+  setInterval(function(){ state.dwell+=10; if(state.dwell<=160) recompute(); },10000);
+
+  log("session.start", leadId);
+  log("lead.create","source="+(ref||"direct"));
+  log("model.score","cold start");
+  renderEvidence(); recompute();
+})();
+</script>
+</body>
+</html>
