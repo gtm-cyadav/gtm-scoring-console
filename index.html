@@ -113,7 +113,27 @@
     border-bottom:1px solid var(--line);
     display:flex; align-items:center; gap:13px; padding:11px 22px;
   }
-  .appname{font-family:'IBM Plex Mono',monospace; font-weight:500; font-size:12.5px; letter-spacing:.02em;}
+  /* the header is a pipeline, and the brass dot is the reader */
+  .pipe{ display:inline-flex; align-items:center; flex:none; }
+  .pipe i{
+    width:7px; height:7px; border-radius:50%; flex:none;
+    border:1px solid var(--line-2); background:transparent;
+    transition:background .35s ease, border-color .35s ease, box-shadow .35s ease, transform .35s ease;
+  }
+  .pipe i[data-past="1"]{ background:var(--line-2); border-color:var(--line-2); }
+  .pipe i[data-now="1"]{
+    background:var(--accent); border-color:var(--accent);
+    box-shadow:0 0 0 3px var(--accent-soft); transform:scale(1.15);
+  }
+  .pipe s{ width:15px; height:1px; background:var(--line-2); text-decoration:none; flex:none; }
+  @media (max-width:520px){ .pipe s{ width:9px; } }
+  .pipe-name{
+    font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:var(--accent);
+    letter-spacing:.03em; white-space:nowrap;
+  }
+  .pipe-name::before{ content:"you · "; color:var(--ink-3); }
+  @media (max-width:359px){ .pipe-name{ display:none; } }
+  @media (max-width:430px){ .pipe-name::before{ content:""; } }
   .ver{font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--ink-3); letter-spacing:.06em;}
   .conn{display:flex; align-items:center; gap:6px;}
   .conn .led{width:5px; height:5px; border-radius:50%; background:var(--good);}
@@ -303,6 +323,60 @@
   footer{ margin-top:46px; padding-top:22px; border-top:1px solid var(--line); font-size:12.8px; color:var(--ink-3); max-width:72ch; line-height:1.7; }
   footer a{ color:var(--ink-2); }
 
+  /* ---------- live intake ---------- */
+  .pending{ color:var(--ink-3); opacity:.55; }
+  .just-in{ animation:flashin .7s ease-out; }
+  @keyframes flashin{ 0%{ background:var(--accent-soft); } 100%{ background:transparent; } }
+  .intake-foot{
+    display:flex; align-items:baseline; gap:8px; flex-wrap:wrap;
+    margin:13px 0 0; font-size:12.6px; color:var(--ink-2);
+  }
+  .intake-foot b{ color:var(--ink); font-weight:600; }
+
+  /* ---------- scroll cue ---------- */
+  .cue{
+    display:inline-flex; align-items:center; gap:9px; margin-top:26px;
+    font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:.08em;
+    text-transform:uppercase; color:var(--ink-3); transition:opacity .5s ease;
+  }
+  .cue[data-gone="1"]{ opacity:0; pointer-events:none; }
+  .cue .arrow{
+    width:17px; height:17px; border-radius:50%; border:1px solid var(--accent); color:var(--accent);
+    display:inline-flex; align-items:center; justify-content:center; font-size:9px;
+    animation:nudge 1.9s ease-in-out infinite;
+  }
+  @keyframes nudge{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(3px); } }
+  @media (prefers-reduced-motion: reduce){ .cue .arrow{ animation:none; } .just-in{ animation:none; } }
+
+  /* ---------- score nudge ---------- */
+  .nudge{
+    margin-top:13px; padding-top:12px; border-top:1px solid var(--line);
+    font-size:11.5px; color:var(--ink-2); line-height:1.5;
+  }
+  .nudge b{ font-family:'IBM Plex Mono',monospace; color:var(--accent); font-weight:600; }
+  .nudge.clear b{ color:var(--good); }
+
+  /* ---------- stage progress ---------- */
+  .stage[data-seen="1"] .stage-num{ border-color:var(--accent); color:var(--accent); }
+  .stage-num{ transition:border-color .45s ease, color .45s ease; }
+
+  /* ---------- toast typing ---------- */
+  .typing{ display:inline-flex; gap:3px; align-items:center; height:14px; }
+  .typing i{ width:4px; height:4px; border-radius:50%; background:var(--ink-3); animation:blip 1.1s infinite; }
+  .typing i:nth-child(2){ animation-delay:.18s; }
+  .typing i:nth-child(3){ animation-delay:.36s; }
+  @keyframes blip{ 0%,60%,100%{ opacity:.25; } 30%{ opacity:1; } }
+  @media (prefers-reduced-motion: reduce){ .typing i{ animation:none; opacity:.6; } }
+
+  /* ---------- session summary ---------- */
+  .summary{ margin-top:6px; }
+  .summary .panel-pad{ padding:20px 22px; }
+  .sum-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(112px,1fr)); gap:18px; margin:14px 0 0; }
+  .sum-n{ font-family:'IBM Plex Mono',monospace; font-size:25px; letter-spacing:-.03em; line-height:1; }
+  .sum-l{ font-family:'IBM Plex Mono',monospace; font-size:9.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-3); margin-top:7px; }
+  .sum-line{ font-size:13.8px; color:var(--ink-2); margin:16px 0 0; max-width:64ch; }
+  .sum-line b{ color:var(--ink); font-weight:600; }
+
   /* ---------- phone ---------- */
   @media (max-width:620px){
     header{ padding:9px 15px; gap:10px; }
@@ -334,7 +408,8 @@
 <body>
 
 <header>
-  <span class="appname">gtm-scoring-console</span>
+  <span class="pipe" id="pipe" role="img" aria-label="Your position in the pipeline"></span>
+  <span class="pipe-name" id="pipe-name">Ingest</span>
   <span class="ver">v1.1</span>
   <span class="conn micro"><span class="led"></span>production</span>
   <span class="spacer"></span>
@@ -348,6 +423,7 @@
     <h1>You are the lead. This is the pipeline <em>scoring you.</em></h1>
     <div class="rule" style="background:linear-gradient(90deg, var(--line), transparent 60%); margin:22px 0 18px;"></div>
     <p class="dek">Chetan Yadav built a lead scoring system for a GTM team — PostgreSQL, a logistic regression model, a Slack bot that fires on hot leads. <b>This page is that system, pointed at you.</b> Fill in the enrichment record, tell it which role you're hiring for, and the evidence below re-ranks and rewrites itself for that role.</p>
+    <div class="cue" id="cue"><span class="arrow">↓</span>keep scrolling — the intake is only the first stage</div>
   </div>
 
   <div class="cols">
@@ -356,17 +432,28 @@
       <section class="stage" data-done="1">
         <div class="stage-num">01</div>
         <div class="stage-h"><h2>Ingest</h2><span class="micro">event received</span></div>
-        <p class="stage-sub">A lead record was created the moment you opened this page. Everything in it is inferred client-side, from your own browser.</p>
+        <p class="stage-sub">A lead record was created the moment you opened this page, and it is filling in as you read. Every line is inferred inside your own browser — this is simply what any website can see about you.</p>
         <div class="panel">
           <table class="rec">
-            <tr><td>lead_id</td><td id="r-id">—</td></tr>
-            <tr><td>first_seen</td><td id="r-seen">—</td></tr>
-            <tr><td>source</td><td id="r-src">—</td></tr>
-            <tr><td>device</td><td id="r-dev">—</td></tr>
-            <tr><td>days_since_engagement</td><td>0 <span style="color:var(--ink-3)">— engaged today</span></td></tr>
+            <tr><td>lead_id</td><td id="r-id" class="pending">resolving…</td></tr>
+            <tr><td>first_seen</td><td id="r-seen" class="pending">resolving…</td></tr>
+            <tr><td>source</td><td id="r-src" class="pending">resolving…</td></tr>
+            <tr><td>timezone</td><td id="r-tz" class="pending">resolving…</td></tr>
+            <tr><td>local_time</td><td id="r-time" class="pending">resolving…</td></tr>
+            <tr><td>languages</td><td id="r-lang" class="pending">resolving…</td></tr>
+            <tr><td>platform</td><td id="r-os" class="pending">resolving…</td></tr>
+            <tr><td>browser</td><td id="r-br" class="pending">resolving…</td></tr>
+            <tr><td>screen</td><td id="r-screen" class="pending">resolving…</td></tr>
+            <tr><td>viewport</td><td id="r-view" class="pending">resolving…</td></tr>
+            <tr><td>pointer</td><td id="r-point" class="pending">resolving…</td></tr>
+            <tr><td>cpu_cores</td><td id="r-cpu" class="pending">resolving…</td></tr>
+            <tr><td>connection</td><td id="r-conn" class="pending">resolving…</td></tr>
+            <tr><td>appearance</td><td id="r-theme" class="pending">resolving…</td></tr>
+            <tr><td>days_since_engagement</td><td id="r-rec" class="pending">resolving…</td></tr>
             <tr><td>status</td><td><span id="r-status" style="color:var(--cold);">NEW · UNQUALIFIED</span></td></tr>
           </table>
         </div>
+        <p class="intake-foot" id="intake-foot" hidden><b id="intake-count">0 signals</b> read, none of which left this page. Scroll on — the model has four more stages to put you through.</p>
       </section>
 
       <!-- 02 -->
@@ -507,6 +594,21 @@
         </div>
       </section>
 
+      <section class="stage summary" style="padding-bottom:10px;">
+        <div class="stage-num">06</div>
+        <div class="stage-h"><h2>Session</h2><span class="micro">what the page noticed</span></div>
+        <p class="stage-sub">No analytics collected this. It is simply what the page in front of you has been counting since you arrived.</p>
+        <div class="panel panel-pad">
+          <div class="sum-grid">
+            <div><div class="sum-n" id="sum-time">0:00</div><div class="sum-l">on this page</div></div>
+            <div><div class="sum-n" id="sum-records">0</div><div class="sum-l">records opened</div></div>
+            <div><div class="sum-n" id="sum-depth">0%</div><div class="sum-l">read depth</div></div>
+            <div><div class="sum-n" id="sum-score">10</div><div class="sum-l">final score</div></div>
+          </div>
+          <p class="sum-line" id="sum-line">You have not picked a role yet, so the evidence above is still arguing for growth and GTM by default.</p>
+        </div>
+      </section>
+
       <footer>
         Everything here runs in your browser — no analytics, no cookies, no tracking pixels. Nothing you type is sent anywhere unless you press a button that says it will be, and then only the fields listed in the record above. The scoring is real logistic regression with the coefficients printed above, and the signals it uses are the same ones the production model uses: seniority, company size, recency of engagement. That version, the one scoring actual inbound leads and posting to Slack, lives at <a href="https://github.com/gtm-cyadav/gtm-lead-scoring" target="_blank" rel="noopener">github.com/gtm-cyadav/gtm-lead-scoring</a>.
       </footer>
@@ -520,6 +622,7 @@
         <div><span class="statuspill" id="big-pill" style="color:var(--cold);">COLD · ANONYMOUS</span></div>
         <div class="heat"><div class="fill" id="heat-fill" style="width:10%; background:var(--cold);"></div><div class="thr"></div></div>
         <div class="heat-lab"><span>0</span><span>MQL 70</span><span>100</span></div>
+        <div class="nudge" id="nudge">Reading the record now.</div>
       </section>
       <section>
         <div class="micro rail-h">Why — feature contributions</div>
@@ -619,27 +722,73 @@
   }
 
   /* ---------------- sigmoid ---------------- */
-  function drawSigmoid(z,p){
-    var w=268,h=112,padL=24,padR=8,padT=9,padB=19, iw=w-padL-padR, ih=h-padT-padB;
-    var X=function(zz){ return padL+(zz+4)/8*iw; }, Y=function(pp){ return padT+(1-pp)*ih; };
-    var d="",i,zz;
-    for(i=0;i<=72;i++){ zz=-4+8*i/72; d+=(i?" L":"M")+X(zz).toFixed(1)+","+Y(sig(zz)).toFixed(1); }
-    var cz=Math.max(-4,Math.min(4,z)), ns="http://www.w3.org/2000/svg", svg=$("sig");
+  var REDUCED = false;
+  try { REDUCED = matchMedia("(prefers-reduced-motion: reduce)").matches; } catch(e){}
+
+  var SG={w:268,h:112,padL:24,padR:8,padT:9,padB:19};
+  SG.iw=SG.w-SG.padL-SG.padR; SG.ih=SG.h-SG.padT-SG.padB;
+  function SX(z){ return SG.padL+(Math.max(-4,Math.min(4,z))+4)/8*SG.iw; }
+  function SY(p){ return SG.padT+(1-p)*SG.ih; }
+  var dotEl=null, guideEl=null;
+
+  function buildSigmoid(){
+    var ns="http://www.w3.org/2000/svg", svg=$("sig");
     while(svg.firstChild) svg.removeChild(svg.firstChild);
     function el(tag,a){ var n=document.createElementNS(ns,tag); for(var k in a) n.setAttribute(k,a[k]); return n; }
-    svg.appendChild(el("line",{x1:padL,y1:Y(0.7),x2:w-padR,y2:Y(0.7),stroke:"var(--line-2)","stroke-dasharray":"2 4","stroke-width":1}));
-    svg.appendChild(el("line",{x1:padL,y1:padT,x2:padL,y2:h-padB,stroke:"var(--line)","stroke-width":1}));
-    svg.appendChild(el("line",{x1:padL,y1:h-padB,x2:w-padR,y2:h-padB,stroke:"var(--line)","stroke-width":1}));
+    var d="",i,zz;
+    for(i=0;i<=72;i++){ zz=-4+8*i/72; d+=(i?" L":"M")+SX(zz).toFixed(1)+","+SY(sig(zz)).toFixed(1); }
+    svg.appendChild(el("line",{x1:SG.padL,y1:SY(0.7),x2:SG.w-SG.padR,y2:SY(0.7),stroke:"var(--line-2)","stroke-dasharray":"2 4","stroke-width":1}));
+    svg.appendChild(el("line",{x1:SG.padL,y1:SG.padT,x2:SG.padL,y2:SG.h-SG.padB,stroke:"var(--line)","stroke-width":1}));
+    svg.appendChild(el("line",{x1:SG.padL,y1:SG.h-SG.padB,x2:SG.w-SG.padR,y2:SG.h-SG.padB,stroke:"var(--line)","stroke-width":1}));
     svg.appendChild(el("path",{d:d,fill:"none",stroke:"var(--accent)","stroke-width":1.6}));
-    svg.appendChild(el("line",{x1:X(cz),y1:Y(sig(cz)),x2:X(cz),y2:h-padB,stroke:"var(--line-2)","stroke-width":1,"stroke-dasharray":"1 3"}));
-    svg.appendChild(el("circle",{cx:X(cz),cy:Y(sig(cz)),r:3.6,fill:heatColor(Math.round(p*100)),stroke:"var(--panel)","stroke-width":1.6}));
+    guideEl=el("line",{stroke:"var(--line-2)","stroke-width":1,"stroke-dasharray":"1 3"});
+    dotEl=el("circle",{r:3.6,stroke:"var(--panel)","stroke-width":1.6,fill:"var(--cold)"});
+    svg.appendChild(guideEl); svg.appendChild(dotEl);
     function txt(x,y,s,anchor){
       var t=el("text",{x:x,y:y,fill:"var(--ink-3)","font-size":"8.5","font-family":"'IBM Plex Mono', monospace","text-anchor":anchor||"start"});
       t.textContent=s; return t;
     }
-    svg.appendChild(txt(2,Y(1)+3,"1.0")); svg.appendChild(txt(2,Y(0.7)+3,"0.7")); svg.appendChild(txt(2,Y(0)+3,"0.0"));
-    svg.appendChild(txt(padL,h-5,"z −4")); svg.appendChild(txt(w-padR,h-5,"+4","end"));
+    svg.appendChild(txt(2,SY(1)+3,"1.0")); svg.appendChild(txt(2,SY(0.7)+3,"0.7")); svg.appendChild(txt(2,SY(0)+3,"0.0"));
+    svg.appendChild(txt(SG.padL,SG.h-5,"z −4")); svg.appendChild(txt(SG.w-SG.padR,SG.h-5,"+4","end"));
   }
+  function moveDot(z){
+    if(!dotEl) return;
+    var x=SX(z), y=SY(sig(z));
+    dotEl.setAttribute("cx",x.toFixed(1)); dotEl.setAttribute("cy",y.toFixed(1));
+    dotEl.setAttribute("fill", heatColor(Math.round(sig(z)*100)));
+    guideEl.setAttribute("x1",x.toFixed(1)); guideEl.setAttribute("y1",y.toFixed(1));
+    guideEl.setAttribute("x2",x.toFixed(1)); guideEl.setAttribute("y2",SG.h-SG.padB);
+  }
+
+  /* the readouts ease toward the model instead of snapping to it */
+  var tgt={z:-4,score:0}, shown={z:-4,score:0}, raf=null;
+  function paint(){
+    var s=Math.round(shown.score);
+    $("big-score").textContent=s;
+    var sp=document.createElement("span"); sp.textContent="/100"; $("big-score").appendChild(sp);
+    $("hdr-score").textContent=s;
+    $("big-prob").textContent="p(convert) = "+sig(shown.z).toFixed(3);
+    $("heat-fill").style.width=s+"%";
+    $("heat-fill").style.background=heatColor(s);
+    $("sum-score").textContent=s;
+    moveDot(shown.z);
+  }
+  function step(){
+    var dz=tgt.z-shown.z, ds=tgt.score-shown.score;
+    if(Math.abs(dz)<0.003 && Math.abs(ds)<0.25){
+      shown.z=tgt.z; shown.score=tgt.score; paint(); raf=null; return;
+    }
+    shown.z+=dz*0.15; shown.score+=ds*0.15;
+    paint(); raf=requestAnimationFrame(step);
+  }
+  function snap(){ shown.z=tgt.z; shown.score=tgt.score; paint(); }
+  function animateTo(z,score){
+    tgt.z=z; tgt.score=score;
+    /* rAF is paused in a hidden tab, so don't hand it the update */
+    if(REDUCED || document.hidden){ snap(); return; }
+    if(!raf) raf=requestAnimationFrame(step);
+  }
+  document.addEventListener("visibilitychange", function(){ if(!document.hidden) snap(); });
 
   /* ---------------- contributions ---------------- */
   var CN=[["seniority","seniority"],["size","company_size"],["intent","intent"],["engagement","engagement"],["recency","recency"]];
@@ -865,11 +1014,23 @@
     var ch=document.createElement("div"); ch.className="micro"; ch.textContent="#gtm-lead-alerts";
     var who=document.createElement("div"); who.className="who"; who.textContent="LeadBot";
     var bd=document.createElement("div"); bd.className="bd";
-    bd.appendChild(document.createTextNode("New MQL — "));
-    var b=document.createElement("b");
-    b.textContent=(state.name||"anonymous lead")+(state.company?" at "+state.company:"");
-    bd.appendChild(b);
-    bd.appendChild(document.createTextNode(" scored "+score+"/100, reading for "+TRACK_NAME[state.track]+". Routing to Chetan."));
+    function writeMessage(){
+      bd.textContent="";
+      bd.appendChild(document.createTextNode("New MQL — "));
+      var b=document.createElement("b");
+      b.textContent=(state.name||"anonymous lead")+(state.company?" at "+state.company:"");
+      bd.appendChild(b);
+      bd.appendChild(document.createTextNode(" scored "+score+"/100, reading for "+TRACK_NAME[state.track]+". Routing to Chetan."));
+    }
+    if(REDUCED){ writeMessage(); }
+    else {
+      var typing=document.createElement("span"); typing.className="typing";
+      typing.appendChild(document.createElement("i"));
+      typing.appendChild(document.createElement("i"));
+      typing.appendChild(document.createElement("i"));
+      bd.appendChild(typing);
+      setTimeout(writeMessage, 900);
+    }
     body.appendChild(ch); body.appendChild(who); body.appendChild(bd);
     var x=document.createElement("button"); x.className="x"; x.type="button";
     x.setAttribute("aria-label","Dismiss"); x.textContent="✕";
@@ -897,27 +1058,60 @@
     $("handoff").href="mailto:chetan00yadav@gmail.com?subject="+encodeURIComponent(subject)+"&body="+encodeURIComponent(lines.join("\n"));
   }
 
+  /* ---------------- nudge & summary ---------------- */
+  function updateNudge(score){
+    var el=$("nudge");
+    if(state.converted){ el.className="nudge clear"; el.textContent="Record handed over. Nothing further is asked of you."; return; }
+    if(score>=70){ el.className="nudge clear"; el.innerHTML="Threshold cleared at <b>p ≥ 0.70</b>. The alert has already fired."; return; }
+    var opts=[];
+    if(state.seniority==="none") opts.push({t:"Add your seniority", g:W.seniority.founder-W.seniority.none});
+    if(state.intent==="none")    opts.push({t:"Set your intent", g:W.intent.now-W.intent.none});
+    if(state.size==="none")      opts.push({t:"Add company size", g:W.size.big-W.size.none});
+    var gap=(1-engagement())*W.engagementMax;
+    if(gap>0.06) opts.push({t:"Read further — open a few records", g:gap});
+    if(!opts.length){ el.className="nudge"; el.textContent="Every signal is in. This is your score."; return; }
+    opts.sort(function(a,b){ return b.g-a.g; });
+    var best=opts[0], s2=Math.round(sig(zOf()+best.g)*100);
+    el.className="nudge";
+    el.innerHTML=best.t+" → up to <b>+"+best.g.toFixed(2)+"</b>, which would put you at <b>"+s2+"</b>.";
+  }
+
+  var T0=Date.now(), trackHistory=[], lastScore=0;
+  function updateSummary(){
+    var secs=Math.floor((Date.now()-T0)/1000);
+    $("sum-time").textContent=Math.floor(secs/60)+":"+("0"+(secs%60)).slice(-2);
+    $("sum-records").textContent=state.sections;
+    $("sum-depth").textContent=Math.round(state.depth*100)+"%";
+    var n=trackHistory.map(function(k){ return TRACK_NAME[k]; }), line;
+    if(!n.length){
+      line="You have not picked a role yet, so the evidence above is still arguing for growth and GTM by default.";
+    } else if(n.length===1){
+      line="You read him as a <b>"+n[0]+"</b> hire. The record re-ranked itself once and stayed there.";
+    } else {
+      line="You started on <b>"+n[0]+"</b> and ended on <b>"+n[n.length-1]+"</b>"+
+           (n.length>2 ? ", working through "+n.length+" roles on the way" : "")+
+           ". Same six records each time — only the argument changed.";
+    }
+    $("sum-line").innerHTML=line;
+  }
+
   /* ---------------- recompute ---------------- */
   function recompute(){
     var z=zOf(), p=sig(z), score=Math.round(p*100), st=statusOf(score);
-    $("big-score").textContent=score;
-    var sp=document.createElement("span"); sp.textContent="/100"; $("big-score").appendChild(sp);
-    $("big-prob").textContent="p(convert) = "+p.toFixed(3);
-    $("hdr-score").textContent=score;
+    lastScore=score;
     $("hdr-status").textContent=st.t.split(" · ")[0];
     $("hdr-dot").style.background=heatColor(score);
     document.body.dataset.heat = score>=70 ? "hot" : (score>=45 ? "warm" : "cold");
     $("m-z").textContent=num(z);
     var pill=$("big-pill"); pill.textContent=st.t; pill.style.color=st.c;
-    $("heat-fill").style.width=score+"%";
-    $("heat-fill").style.background=heatColor(score);
     var rs=$("r-status");
     rs.textContent = state.converted ? "CONVERTED" : (score>=70 ? "MQL · ROUTED" : (state.name ? "IDENTIFIED · UNQUALIFIED" : "NEW · UNQUALIFIED"));
     rs.style.color = state.converted ? "var(--good)" : heatColor(score);
     $("stage-enrich").setAttribute("data-done",(state.seniority!=="none"||state.intent!=="none")?"1":"0");
     $("stage-route").setAttribute("data-done", score>=70?"1":"0");
     $("route-tag").textContent = score>=70 ? "alert fired" : "waiting on threshold";
-    drawContrib(); drawSigmoid(z,p); renderCode(); updateHandoff(score,p);
+    animateTo(z,score);
+    drawContrib(); renderCode(); updateHandoff(score,p); updateNudge(score); updateSummary();
     if(score>=70 && !state.alerted){ state.alerted=true; fireAlert(score); }
   }
 
@@ -932,17 +1126,81 @@
       tb.querySelectorAll("button").forEach(function(x){ x.setAttribute("aria-pressed","false"); });
       b.setAttribute("aria-pressed","true");
       state.track=t.k;
+      if(trackHistory[trackHistory.length-1]!==t.k) trackHistory.push(t.k);
       log("model.rerank","track="+t.k);
       renderEvidence(); recompute();
     });
     tb.appendChild(b);
   });
 
-  $("r-id").textContent=leadId;
-  $("r-seen").textContent=new Date().toLocaleString(undefined,{dateStyle:"medium",timeStyle:"short"});
   var ref=""; try{ ref=document.referrer ? new URL(document.referrer).hostname : ""; }catch(e){ ref=""; }
-  $("r-src").textContent=ref||"direct / unknown";
-  $("r-dev").textContent=(window.innerWidth<760?"mobile":"desktop")+" · "+window.innerWidth+"×"+window.innerHeight;
+
+  /* ---------------- intake: what any page can see ---------------- */
+  function signals(){
+    var n=navigator, ua=n.userAgent||"";
+    var tz="unknown"; try{ tz=Intl.DateTimeFormat().resolvedOptions().timeZone||"unknown"; }catch(e){}
+    var off=-new Date().getTimezoneOffset(), sgn=off<0?"−":"+"; off=Math.abs(off);
+    var offs="UTC"+sgn+Math.floor(off/60)+":"+("0"+(off%60)).slice(-2);
+    var langs=(n.languages&&n.languages.length? n.languages.slice(0,3) : [n.language||"?"]).join(" · ");
+    var os = /Android/.test(ua)?"Android" : /iPhone|iPad|iPod/.test(ua)?"iOS" : /Windows NT/.test(ua)?"Windows"
+           : /Mac OS X/.test(ua)?"macOS" : /Linux/.test(ua)?"Linux" : "unknown";
+    var br = /Edg\//.test(ua)?"Edge" : /OPR\//.test(ua)?"Opera" : /Chrome\//.test(ua)?"Chrome"
+           : /Firefox\//.test(ua)?"Firefox" : /Safari\//.test(ua)?"Safari" : "unknown";
+    var mv=ua.match(/(?:Edg|OPR|Chrome|Firefox|Version)\/(\d+)/); if(mv) br+=" "+mv[1];
+    var dark=false; try{ dark=matchMedia("(prefers-color-scheme: dark)").matches; }catch(e){}
+    var conn=(n.connection&&n.connection.effectiveType)? n.connection.effectiveType : "not reported";
+    var coarse=false; try{ coarse=matchMedia("(pointer: coarse)").matches; }catch(e){}
+    var pts=n.maxTouchPoints||0;
+    var pointer = coarse ? "touch"+(pts?" · "+pts+" points":"")
+                : (pts ? "mouse / trackpad · touchscreen present" : "mouse / trackpad");
+    var scr=(screen.width&&screen.height) ? screen.width+"×"+screen.height+" @"+(window.devicePixelRatio||1)+"x" : "not reported";
+    return [
+      ["r-id",    leadId, "lead.create"],
+      ["r-seen",  new Date().toLocaleString(undefined,{dateStyle:"medium",timeStyle:"short"}), null],
+      ["r-src",   ref||"direct / unknown", "source.resolve"],
+      ["r-tz",    tz+" · "+offs, "geo.infer"],
+      ["r-time",  new Date().toLocaleTimeString(undefined,{hour:"2-digit",minute:"2-digit"})+" where you are", null],
+      ["r-lang",  langs, "locale.read"],
+      ["r-os",    os, null],
+      ["r-br",    br, "ua.parse"],
+      ["r-screen",scr, null],
+      ["r-view",  window.innerWidth+"×"+window.innerHeight, null],
+      ["r-point", pointer, "device.class"],
+      ["r-cpu",   n.hardwareConcurrency ? n.hardwareConcurrency+" logical cores" : "not reported", null],
+      ["r-conn",  conn, null],
+      ["r-theme", (dark?"dark":"light")+" mode"+(REDUCED?" · reduced motion":""), "prefs.read"],
+      ["r-rec",   "0 — engaged today", "recency.set"]
+    ];
+  }
+
+  function boot(){
+    var rows=signals(), i=0;
+    function fill(r){
+      var el=$(r[0]);
+      if(el){ el.textContent=r[1]; el.classList.remove("pending"); }
+      return el;
+    }
+    if(REDUCED){
+      rows.forEach(fill);
+      $("intake-count").textContent=rows.length+" signals";
+      $("intake-foot").hidden=false;
+      log("model.score","cold start"); recompute();
+      return;
+    }
+    setTimeout(function reveal(){
+      var r=rows[i], el=fill(r);
+      if(el) el.classList.add("just-in");
+      if(r[2]) log(r[2], String(r[1]).slice(0,40));
+      i++;
+      $("intake-count").textContent=i+(i===1?" signal":" signals");
+      if(i<rows.length) setTimeout(reveal,95);
+      else {
+        $("intake-foot").hidden=false;
+        log("model.score","cold start");
+        recompute();
+      }
+    }, 320);
+  }
 
   ["f-name","f-company"].forEach(function(id){
     $(id).addEventListener("input", function(){
@@ -1002,18 +1260,61 @@
     recompute();
   });
 
-  var maxDepth=0;
+  var maxDepth=0, cueGone=false;
   window.addEventListener("scroll", function(){
+    if(!cueGone && window.scrollY>60){ cueGone=true; $("cue").setAttribute("data-gone","1"); }
+    updatePipe();
     var h=document.body.scrollHeight-window.innerHeight;
     var d=h>0 ? Math.min(1, window.scrollY/h) : 1;
-    if(d>maxDepth+0.08){ maxDepth=d; state.depth=d; recompute(); }
+    if(d>maxDepth+0.05){ maxDepth=d; state.depth=d; recompute(); }
   },{passive:true});
+  window.addEventListener("resize", updatePipe, {passive:true});
+
+  /* stages light up as you pass them */
+  if("IntersectionObserver" in window){
+    var io=new IntersectionObserver(function(entries){
+      entries.forEach(function(e){ if(e.isIntersecting) e.target.setAttribute("data-seen","1"); });
+    },{rootMargin:"-20% 0px -50% 0px"});
+    document.querySelectorAll(".stage").forEach(function(s){ io.observe(s); });
+  }
+
+  /* header pipeline — one dot per stage, brass dot is the reader */
+  var stageEls=[].slice.call(document.querySelectorAll(".stage"));
+  var stageNames=stageEls.map(function(s){
+    var h=s.querySelector(".stage-h h2"); return h ? h.textContent : "";
+  });
+  var pipeDots=[];
+  (function buildPipe(){
+    var host=$("pipe");
+    stageEls.forEach(function(_, i){
+      if(i){ host.appendChild(document.createElement("s")); }
+      var d=document.createElement("i");
+      pipeDots.push(d); host.appendChild(d);
+    });
+  })();
+  var pipeAt=-1;
+  function updatePipe(){
+    var line=window.innerHeight*0.42, idx=0;
+    stageEls.forEach(function(s,i){ if(s.getBoundingClientRect().top <= line) idx=i; });
+    if(idx===pipeAt) return;
+    pipeAt=idx;
+    pipeDots.forEach(function(d,i){
+      if(i<idx) d.setAttribute("data-past","1"); else d.removeAttribute("data-past");
+      if(i===idx) d.setAttribute("data-now","1"); else d.removeAttribute("data-now");
+    });
+    /* a fast scroll shouldn't leave skipped stages looking unread */
+    stageEls.forEach(function(s,i){ if(i<=idx) s.setAttribute("data-seen","1"); });
+    $("pipe-name").textContent=stageNames[idx]||"";
+  }
+
   setInterval(function(){ state.dwell+=10; if(state.dwell<=160) recompute(); },10000);
+  setInterval(updateSummary, 1000);
 
   log("session.start", leadId);
-  log("lead.create","source="+(ref||"direct"));
-  log("model.score","cold start");
-  renderEvidence(); recompute();
+  buildSigmoid();
+  renderEvidence();
+  updatePipe();
+  boot();
 })();
 </script>
 </body>
